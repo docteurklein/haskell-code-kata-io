@@ -7,7 +7,12 @@ import Web.Scotty
 import Control.Monad
 import Control.Monad.Trans
 import Data.Monoid
+import qualified Data.ByteString.Lazy.Char8 as BT
 import Data.Text.Lazy.Encoding (decodeUtf8)
+import qualified Data.Text.Lazy as LT
+import Data.Algorithm.Diff
+import Data.Algorithm.DiffOutput
+
 
 --main = scotty 3000 $
 --  get "/:word" $ do
@@ -26,4 +31,8 @@ main = scotty 3000 $ do
 
   put "/exercises/:exercise/output" $ do
     exercise <- param "exercise"
-    file $ mconcat ["exercises/", exercise, "/expected"]
+    actual <- body
+    let path = mconcat ["exercises/", exercise, "/expected"]
+    expected <- liftIO $ readFile path
+    html $ LT.pack $ ppDiff $ getGroupedDiff (lines expected) (lines $ BT.unpack actual)
+    --html $ "test"
